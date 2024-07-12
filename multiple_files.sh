@@ -40,8 +40,10 @@ for key in $keys; do
     cp "$file_path" "$new_file_name"
 
     # Modify the content of the new file
-    sed -i "4s/name:.*/name: $(basename "$key" | tr '[:upper:]_' '[:lower:]-')/" "$new_file_name"
-    sed -i "64s/name:.*/name: PARAMS $dict_name/" "$new_file_name"
+    new_name=$(echo "$key" | tr '[:upper:]_' '[:lower:]-')
+    sed -i '' "4s|name:.*|name: $new_name|" "$new_file_name"
+    sed -i '' "62s|.*|        $key|" "$new_file_name"
+    sed -i '' "64s|name:.*|name: PARAMS $dict_name|" "$new_file_name"
 
     echo "Created and modified file: $new_file_name"
 done
