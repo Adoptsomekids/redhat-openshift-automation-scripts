@@ -1,0 +1,1 @@
+# redhat-openshift-automation-scripts
