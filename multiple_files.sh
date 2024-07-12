@@ -41,9 +41,11 @@ for key in $keys; do
 
     # Modify the content of the new file
     new_name=$(echo "$key" | tr '[:upper:]_' '[:lower:]-')
+    dict_underscore_name="PARAMS_$dict_name"
     sed -i '' "4s|name:.*|name: $new_name|" "$new_file_name"
     sed -i '' "62s|.*|        $key|" "$new_file_name"
-    sed -i '' "64s|name:.*|name: PARAMS $dict_name|" "$new_file_name"
+    sed -i '' "64s|name:.*|name: $dict_underscore_name|" "$new_file_name"
+    sed -i '' "156s|PARAMS_BVT|$dict_underscore_name|" "$new_file_name"
 
     echo "Created and modified file: $new_file_name"
 done
