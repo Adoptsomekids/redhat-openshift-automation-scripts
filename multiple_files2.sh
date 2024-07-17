@@ -16,36 +16,51 @@ if [[ ! -f "$json_file" ]]; then
     exit 1
 fi
 
-# Ask for the dictionary name in test_suites_info.json
-read -p "Enter the dictionary name in test_suites_info.json: " dict_name
-
-# Extract dictionary from JSON
-dict_content=$(jq -r ".$dict_name" "$json_file")
-if [[ "$dict_content" == "null" ]]; then
-    echo "The dictionary $dict_name does not exist in test_suites_info.json."
-    exit 1
-fi
+# Ask the user if they want to process all dictionaries
+read -p "Do you want to generate files for all dictionaries? (yes/no): " process_all
 
 # Create the output directory if it doesn't exist
 output_dir="modified_files"
 mkdir -p "$output_dir"
 
-# Iterate over each key-value pair in the dictionary
-keys=$(jq -r "keys[]" <<< "$dict_content")
+# Function to process a single dictionary
+process_dictionary() {
+    local dict_name=$1
+    local dict_content=$(jq -r ".$dict_name" "$json_file")
+    if [[ "$dict_content" == "null" ]]; then
+        echo "The dictionary $dict_name does not exist in test_suites_info.json."
+        return 1
+    fi
 
-for key in $keys; do
-    # Create a copy of the specified file
-    file_extension="${file_path##*.}"
-    new_file_name="$output_dir/$key.$file_extension"
-    cp "$file_path" "$new_file_name"
+    # Iterate over each key-value pair in the dictionary
+    local keys=$(jq -r "keys[]" <<< "$dict_content")
 
-    # Modify the content of the new file
-    new_name=$(echo "$key" | tr '[:upper:]_' '[:lower:]-')
-    dict_underscore_name="PARAMS_$dict_name"
-    sed -i '' "4s|name:.*|name: $new_name|" "$new_file_name"
-    sed -i '' "60s|.*|        $key|" "$new_file_name"
+    for key in $keys; do
+        # Create a copy of the specified file
+        local file_extension="${file_path##*.}"
+        local new_file_name="$output_dir/$key.$file_extension"
+        cp "$file_path" "$new_file_name"
 
-    echo "Created and modified file: $new_file_name"
-done
+        # Modify the content of the new file
+        local new_name=$(echo "$key" | tr '[:upper:]_' '[:lower:]-')
+        local dict_underscore_name="PARAMS_$dict_name"
+        sed -i '' "4s|name:.*|name: $new_name|" "$new_file_name"
+        sed -i '' "60s|.*|        $key|" "$new_file_name"
+
+        echo "Created and modified file: $new_file_name"
+    done
+}
+
+if [[ "$process_all" == "yes" ]]; then
+    # Get all dictionary names
+    dict_names=$(jq -r 'keys[]' "$json_file")
+    for dict_name in $dict_names; do
+        process_dictionary "$dict_name"
+    done
+else
+    # Ask for the dictionary name in test_suites_info.json
+    read -p "Enter the dictionary name in test_suites_info.json: " dict_name
+    process_dictionary "$dict_name"
+fi
 
 echo "All files created and modified successfully in the directory: $output_dir."
