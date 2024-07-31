@@ -20,7 +20,7 @@ fi
 read -p "Do you want to generate files for all dictionaries? (yes/no): " process_all
 
 # Create the output directory if it doesn't exist
-output_dir="modified_files"
+output_dir="tasks"
 mkdir -p "$output_dir"
 
 # Function to process a single dictionary
